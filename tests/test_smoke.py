@@ -32,6 +32,18 @@ def test_standalone_capa_app_imports_shared_core():
     )
 
 
+def test_eval_and_runtime_models_match_current_oss_stack():
+    eval_mod = load_module("eval_mod", "evaluation/eval.py")
+
+    from capa_8d_expert.answer import ANSWER_MODEL, LLM_RERANK_MODEL, REWRITE_MODEL, OSS_120B_MODEL, OSS_20B_MODEL
+
+    assert eval_mod.JUDGE_MODEL == "claude-sonnet-4-6"
+    assert ANSWER_MODEL == REWRITE_MODEL == OSS_120B_MODEL == "groq/openai/gpt-oss-120b"
+    assert LLM_RERANK_MODEL == OSS_20B_MODEL == "groq/openai/gpt-oss-20b"
+    assert "4-5" not in eval_mod.JUDGE_MODEL
+    assert all("gpt-4o" not in model and "haiku" not in model for model in [ANSWER_MODEL, REWRITE_MODEL, LLM_RERANK_MODEL])
+
+
 def test_script_wrappers_remain_thin_launchers():
     launcher = (ROOT / "scripts" / "workbench_app.py").read_text()
     answer_wrapper = (ROOT / "scripts" / "answer.py").read_text()
