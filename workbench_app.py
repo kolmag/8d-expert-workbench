@@ -12,7 +12,6 @@ Dependencies:
     - .env with OPENAI_API_KEY and ANTHROPIC_API_KEY
 """
 
-import sys
 import argparse
 from pathlib import Path
 from datetime import datetime, date
@@ -29,8 +28,7 @@ import gradio as gr
 import anthropic
 
 # ── RAG pipeline import ────────────────────────────────────────────────────────
-sys.path.insert(0, str(Path(__file__).parent / "scripts"))
-from answer import answer, answer_stream, AnswerResult, RankedChunk
+from capa_8d_expert.answer import answer, answer_stream, AnswerResult, RankedChunk
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Constants

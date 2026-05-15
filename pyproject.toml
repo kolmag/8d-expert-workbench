@@ -1,10 +1,11 @@
 [project]
-name = "capa-8d-expert"
+name = "8d-expert-workbench"
 version = "0.1.0"
-description = "CAPA/8D Expert Knowledge Worker RAG App"
+description = "8D Expert Workbench UI built on the CAPA/8D Expert RAG core"
 requires-python = ">=3.11"
 
 dependencies = [
+    "capa-8d-expert @ git+https://github.com/kolmag/capa-8d-expert.git",
     "anthropic>=0.40.0",
     "openai>=1.50.0",
     "chromadb>=0.5.0",
@@ -32,3 +33,10 @@ dev = [
 
 [tool.uv.sources]
 # torch from PyPI (CPU-only build is lighter — swap for cu121 if you have a GPU)
+
+[tool.uv]
+constraint-dependencies = [
+    "numba>=0.59",
+    "llvmlite>=0.40",
+    "onnxruntime>=1.16.0,<1.20.0",
+]

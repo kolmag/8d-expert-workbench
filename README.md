@@ -99,6 +99,8 @@ cd 8d-expert-workbench
 
 # Install dependencies
 uv sync
+# This installs the shared RAG core from:
+# https://github.com/kolmag/capa-8d-expert
 
 # Copy environment variables
 cp .env.example .env
@@ -153,7 +155,7 @@ See [PRODUCTION_ARCHITECTURE.md](PRODUCTION_ARCHITECTURE.md) for the full five-p
 
 ## Related
 
-- [capa-8d-expert](https://github.com/kolmag/capa-8d-expert) — standalone Expert Q&A app (the RAG pipeline this workbench builds on)
+- [capa-8d-expert](https://github.com/kolmag/capa-8d-expert) — reusable RAG core and standalone Expert Q&A app. This workbench depends on that package instead of duplicating the pipeline.
 
 ---
 
