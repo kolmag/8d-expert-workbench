@@ -11,7 +11,7 @@ The workbench has two tabs that work together:
 **Tab 1 — 8D Builder**
 Step-by-step guided form covering all nine 8D disciplines (D0–D8). Each discipline has:
 - Structured input fields for the required content
-- **AI Suggest** button — calls Claude Haiku for fast, context-aware draft suggestions
+- **AI Suggest** button — calls gpt-oss-120b for fast, context-aware draft suggestions
 - **↗ Ask Expert** button — pre-fills the Expert Q&A tab with a context-aware question drawn from your current report state and switches tabs automatically
 
 **Tab 2 — Expert Q&A**
@@ -26,20 +26,20 @@ Production RAG pipeline answering questions grounded in a 14-document CAPA/8D kn
 ```
 User question
     ↓
-Query rewriting       Claude Haiku — 3 alternative phrasings
+Query rewriting       gpt-oss-120b — 3 alternative phrasings
     ↓
 Retrieval             text-embedding-3-small + Chroma (top 30 candidates)
     ↓
 Reranking             BAAI/bge-reranker-v2-m3 (local cross-encoder, top 5)
     ↓
-Answer generation     GPT-4o-mini
+Answer generation     gpt-oss-120b
     ↓
-Groundedness check    Claude Haiku — strips ungrounded claims
+Groundedness check    gpt-oss-20b — strips ungrounded claims
     ↓
 Answer + sources
 ```
 
-Multi-LLM orchestration: GPT-4o-mini generates, Claude Haiku audits. Model diversity between generator and critic reduces self-leniency — a single model checking its own output has the same blind spots as when it generated it.
+Multi-model orchestration: gpt-oss-120b generates, gpt-oss-20b audits. Keeping generator and critic on different model sizes reduces self-leniency while matching the SICC stack.
 
 ---
 
@@ -64,7 +64,7 @@ Multi-LLM orchestration: GPT-4o-mini generates, Claude Haiku audits. Model diver
 | 8D_report_example_semiconductor.md | Worked semiconductor example |
 | multi-industry_CAPA_8D_compliance.md | ISO 9001, IATF 16949 compliance |
 
-Each document is LLM-enriched at ingest time — Claude Haiku generates a headline, summary, and 3 practitioner queries per chunk. These are embedded alongside the original text, bridging formal SOP vocabulary with conversational question phrasing.
+Each document is LLM-enriched at ingest time — the shared CAPA core generates a headline, summary, and 3 practitioner queries per chunk. These are embedded alongside the original text, bridging formal SOP vocabulary with conversational question phrasing.
 
 ---
 
@@ -104,7 +104,7 @@ uv sync
 
 # Copy environment variables
 cp .env.example .env
-# Add: OPENAI_API_KEY, ANTHROPIC_API_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY
+# Add: OPENAI_API_KEY, GROQ_API_KEY, ANTHROPIC_API_KEY, LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY
 
 # Ingest knowledge base (first run only)
 uv run scripts/ingest.py

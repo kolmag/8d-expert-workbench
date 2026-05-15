@@ -9,7 +9,7 @@ Usage:
 
 Dependencies:
     - scripts/answer.py  (RAG pipeline, unchanged)
-    - .env with OPENAI_API_KEY and ANTHROPIC_API_KEY
+    - .env with OPENAI_API_KEY and GROQ_API_KEY
 """
 
 import argparse
@@ -25,7 +25,7 @@ except ImportError:
     pass
 
 import gradio as gr
-import anthropic
+from litellm import completion
 
 # ── RAG pipeline import ────────────────────────────────────────────────────────
 from capa_8d_expert.answer import answer, answer_stream, AnswerResult, RankedChunk
@@ -306,21 +306,24 @@ details[open] { border-color: #30363d !important; }
 # Claude helper (for Builder AI suggestions — direct Anthropic, not RAG)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def call_claude_direct(prompt: str, max_tokens: int = 600) -> str:
-    """Direct Claude call for Builder AI suggestions. Not RAG-grounded."""
+def call_oss_direct(prompt: str, max_tokens: int = 600) -> str:
+    """Direct OSS-120B call for Builder AI suggestions. Not RAG-grounded."""
     try:
-        client = anthropic.Anthropic()
-        msg = client.messages.create(
-            model="claude-haiku-4-5",
+        response = completion(
+            model="groq/openai/gpt-oss-120b",
+            messages=[
+                {"role": "system", "content": (
+                    "You are an expert quality engineer specialising in 8D problem solving "
+                    "for manufacturing. Provide concise, practical, industry-specific guidance. "
+                    "Use bullet points. Keep responses under 250 words."
+                )},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0,
             max_tokens=max_tokens,
-            system=(
-                "You are an expert quality engineer specialising in 8D problem solving "
-                "for manufacturing. Provide concise, practical, industry-specific guidance. "
-                "Use bullet points. Keep responses under 250 words."
-            ),
-            messages=[{"role": "user", "content": prompt}]
+            stop=["```"],
         )
-        return msg.content[0].text
+        return response.choices[0].message.content.strip()
     except Exception as e:
         return f"⚠️ AI unavailable: {str(e)}"
 
@@ -697,7 +700,7 @@ def build_ui() -> gr.Blocks:
         Expert Workbench
       </div>
       <div style="font-size:11px;color:#8b949e;font-family:'IBM Plex Sans',sans-serif;">
-        8D Builder · RAG Expert Q&A · Claude Haiku · BGE Reranker · GPT-4o-mini
+        8D Builder · RAG Expert Q&A · gpt-oss-120b · gpt-oss-20b · BGE Reranker
       </div>
     </div>
   </div>
@@ -912,7 +915,7 @@ def build_ui() -> gr.Blocks:
 
         def d0_ai(d_data):
             d0 = d_data.get(0, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Problem: {d0.get('title','')}\n{d0.get('description','')}\n"
                 "For this quality issue, is a full 8D warranted or a simpler CAPA path? "
                 "List 3-4 key triage questions the team should answer first (D0 phase)."
@@ -921,7 +924,7 @@ def build_ui() -> gr.Blocks:
 
         def d1_ai(d_data):
             d0 = d_data.get(0, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Product: {d0.get('product','')}\nProblem: {d0.get('description','')}\n"
                 "List the key functions and roles that should be on the D1 8D team. "
                 "Specify why each role is needed for this type of problem."
@@ -930,7 +933,7 @@ def build_ui() -> gr.Blocks:
 
         def d2_ai(d_data):
             d0 = d_data.get(0, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Problem: {d0.get('description','')}\nProduct: {d0.get('product','')}\n"
                 "Suggest the most important IS/IS-NOT dimensions to investigate for this problem. "
                 "Focus on what differentiates affected from non-affected."
@@ -939,7 +942,7 @@ def build_ui() -> gr.Blocks:
 
         def d3_ai(d_data):
             d0 = d_data.get(0, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Problem: {d0.get('description','')}\nProduct: {d0.get('product','')}\n"
                 "List all containment locations that must be checked (D3). "
                 "Include any commonly missed locations for this type of defect."
@@ -948,7 +951,7 @@ def build_ui() -> gr.Blocks:
 
         def d4_ai(d_data):
             d0 = d_data.get(0, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Problem: {d0.get('description','')}\nProduct: {d0.get('product','')}\n"
                 "Recommend an RCA method (5 Whys, Ishikawa, Is/Is-Not, FTA) and explain why. "
                 "List the top 3 likely root cause hypotheses to investigate first."
@@ -957,7 +960,7 @@ def build_ui() -> gr.Blocks:
 
         def d5_ai(d_data):
             d4 = d_data.get(4, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Root cause: {d4.get('root_cause','')}\n"
                 "Suggest effective permanent corrective actions for this root cause. "
                 "Flag the most common mistakes that make PCAs ineffective."
@@ -967,7 +970,7 @@ def build_ui() -> gr.Blocks:
         def d6_ai(d_data):
             d5 = d_data.get(5, {})
             d4 = d_data.get(4, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"PCA: {d5.get('pca','')}\nRoot cause: {d4.get('root_cause','')}\n"
                 "Define specific VoE pass criteria for this corrective action. "
                 "Include Cpk thresholds, monitoring period, and zero-escape requirements."
@@ -976,7 +979,7 @@ def build_ui() -> gr.Blocks:
 
         def d7_ai(d_data):
             d5 = d_data.get(5, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"PCA implemented: {d5.get('pca','')}\n"
                 "List the D7 systemic actions required: FMEA update, Control Plan revision, "
                 "Control Plan updates, procedure changes, training, lateral search scope. "
@@ -987,7 +990,7 @@ def build_ui() -> gr.Blocks:
         def d8_ai(d_data):
             d1 = d_data.get(1, {})
             d0 = d_data.get(0, {})
-            return _ai_html(call_claude_direct(
+            return _ai_html(call_oss_direct(
                 f"Team: {d1.get('team','')}\nProblem resolved: {d0.get('title','')}\n"
                 "Write a short professional team recognition paragraph for closing an 8D report. "
                 "Acknowledge collaboration and quality of solution. Under 80 words."
