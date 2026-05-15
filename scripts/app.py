@@ -19,7 +19,13 @@ except ImportError:
 
 import gradio as gr
 
-from capa_8d_expert.answer import answer, AnswerResult, _load_bge
+from capa_8d_expert.answer import (
+    DEFAULT_MODEL_STACK,
+    MODEL_STACK_OPTIONS,
+    AnswerResult,
+    _load_bge,
+    answer,
+)
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -52,6 +58,13 @@ footer { display: none !important; }
 """
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+
+def resolve_default_model_stack_label() -> str:
+    for label, stack_id in MODEL_STACK_OPTIONS.items():
+        if stack_id == DEFAULT_MODEL_STACK:
+            return label
+    return next(iter(MODEL_STACK_OPTIONS))
+
 
 def category_badge(category: str) -> str:
     colour = CATEGORY_COLOURS.get(category, "#7F8C8D")
@@ -123,6 +136,7 @@ def chat(
     message: str,
     history: list[dict],
     use_rewrite: bool,
+    model_stack: str,
 ) -> tuple[list[dict], str, str]:
     """Gradio 6 messages format: history is list[{"role": ..., "content": ...}]"""
     if not message.strip():
@@ -148,6 +162,7 @@ def chat(
             debug=False,
             reranker_mode='auto',
             history=past_turns if past_turns else None,
+            model_stack=model_stack,
         )
         response_text = result.answer
         sources_html  = format_sources_panel(result)
@@ -179,7 +194,7 @@ def build_ui() -> gr.Blocks:
         gr.Markdown(f"""
 # 🔍 {TITLE}
 **Expert knowledge worker for CAPA procedures, 8D methodology, RCA tools, FMEA, and quality standards.**
-*gpt-oss-120b · gpt-oss-20b · BGE Reranker (local) · text-embedding-3-small · Chroma*
+*Selectable model stacks · BGE Reranker (local) · text-embedding-3-small · Chroma*
         """)
 
         with gr.Row():
@@ -215,6 +230,12 @@ def build_ui() -> gr.Blocks:
                         label="Query rewriting (better recall, slightly slower)",
                         scale=3,
                     )
+                model_stack = gr.Dropdown(
+                    choices=list(MODEL_STACK_OPTIONS.keys()),
+                    value=resolve_default_model_stack_label(),
+                    label="Model stack",
+                    interactive=True,
+                )
 
                 gr.Examples(
                     examples=EXAMPLE_QUESTIONS,
@@ -233,10 +254,10 @@ def build_ui() -> gr.Blocks:
         history_state = gr.State([])
 
         # ── Events ──────────────────────────────────────────────────────────
-        def on_submit(message, history, use_rw):
-            return chat(message, history, use_rw)
+        def on_submit(message, history, use_rw, stack):
+            return chat(message, history, use_rw, stack)
 
-        submit_inputs  = [msg_input, history_state, use_rewrite]
+        submit_inputs  = [msg_input, history_state, use_rewrite, model_stack]
         submit_outputs = [chatbot, msg_input, sources_panel]
 
         msg_input.submit(

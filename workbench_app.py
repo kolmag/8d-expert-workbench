@@ -28,7 +28,14 @@ import gradio as gr
 from litellm import completion
 
 # ── RAG pipeline import ────────────────────────────────────────────────────────
-from capa_8d_expert.answer import answer, answer_stream, AnswerResult, RankedChunk
+from capa_8d_expert.answer import (
+    DEFAULT_MODEL_STACK,
+    MODEL_STACK_OPTIONS,
+    AnswerResult,
+    RankedChunk,
+    answer,
+    answer_stream,
+)
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Constants
@@ -45,6 +52,13 @@ D_STEPS = [
     ("D7", "Prevent Recurrence",       "Update systems, procedures, and lessons learned"),
     ("D8", "Team Recognition",         "Close the 8D and recognise the team"),
 ]
+
+
+def resolve_default_model_stack_label() -> str:
+    for label, stack_id in MODEL_STACK_OPTIONS.items():
+        if stack_id == DEFAULT_MODEL_STACK:
+            return label
+    return next(iter(MODEL_STACK_OPTIONS))
 
 EXPERT_TEMPLATES = {
     "D0": "I have a potential quality issue that may need a full 8D investigation: {problem} on {product}. "
@@ -433,6 +447,7 @@ def rag_chat_stream(
     message: str,
     history: list[dict],
     use_rewrite: bool,
+    model_stack: str,
 ):
     """
     Streaming RAG chat handler for Gradio.
@@ -471,6 +486,7 @@ def rag_chat_stream(
             use_rewrite=use_rewrite,
             reranker_mode="auto",
             history=past_turns if past_turns else None,
+            model_stack=model_stack,
             _sink=sink,
         ):
             accumulated = partial
@@ -700,7 +716,7 @@ def build_ui() -> gr.Blocks:
         Expert Workbench
       </div>
       <div style="font-size:11px;color:#8b949e;font-family:'IBM Plex Sans',sans-serif;">
-        8D Builder · RAG Expert Q&A · gpt-oss-120b · gpt-oss-20b · BGE Reranker
+        8D Builder · RAG Expert Q&A · selectable model stacks · BGE Reranker
       </div>
     </div>
   </div>
@@ -896,6 +912,12 @@ def build_ui() -> gr.Blocks:
                                 label="Query rewriting (better recall, slightly slower)",
                                 scale=3,
                             )
+                        model_stack = gr.Dropdown(
+                            choices=list(MODEL_STACK_OPTIONS.keys()),
+                            value=resolve_default_model_stack_label(),
+                            label="Model stack",
+                            interactive=True,
+                        )
                         gr.Examples(
                             examples=EXAMPLE_QUESTIONS,
                             inputs=msg_input,
@@ -1122,12 +1144,12 @@ def build_ui() -> gr.Blocks:
         # Expert Q&A streaming handlers
         # ════════════════════════════════════════════════════════════════════
 
-        submit_inputs  = [msg_input, expert_hist, use_rewrite]
+        submit_inputs  = [msg_input, expert_hist, use_rewrite, model_stack]
         # Outputs: chatbot (shows history), msg_input (cleared), sources_panel
         submit_outputs = [chatbot, msg_input, sources_panel]
 
-        def on_submit(message, history, use_rw):
-            yield from rag_chat_stream(message, history, use_rw)
+        def on_submit(message, history, use_rw, stack):
+            yield from rag_chat_stream(message, history, use_rw, stack)
 
         # .then() syncs the gr.State with what chatbot holds after streaming completes
         msg_input.submit(
