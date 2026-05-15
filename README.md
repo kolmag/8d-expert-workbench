@@ -41,6 +41,17 @@ Answer + sources
 
 Multi-model orchestration: gpt-oss-120b generates, gpt-oss-20b audits. Keeping generator and critic on different model sizes reduces self-leniency while matching the SICC stack.
 
+**Selectable model stacks:**
+
+| Stack | Use it when |
+|---|---|
+| `oss` — gpt-oss-120b + gpt-oss-20b | Default SICC-aligned stack for current work |
+| `legacy_mixed` — GPT-4o-mini + Claude Haiku | Validated benchmark stack preserving the earlier evaluated results |
+| `cheap_oss` — gpt-oss-20b full stack | Cost-optimized OSS option for quick checks or lower-cost fallback |
+| `hf_experimental` — configurable Hugging Face model | Experimental playground stack; set `HF_EXPERIMENTAL_MODEL` or the per-role `HF_*_MODEL` overrides |
+
+The Expert Q&A tab exposes these as friendly dropdown labels, so you can keep using the validated stack while also trying lower-cost OSS options.
+
 ---
 
 ## Knowledge Base

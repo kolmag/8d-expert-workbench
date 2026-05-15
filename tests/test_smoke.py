@@ -26,6 +26,8 @@ def test_standalone_capa_app_imports_shared_core():
     assert callable(app.answer)
     assert callable(app._load_bge)
     assert "OSS stack — gpt-oss-120b + gpt-oss-20b" in app.MODEL_STACK_OPTIONS
+    assert "Validated benchmark stack — GPT-4o-mini + Claude Haiku" in app.MODEL_STACK_OPTIONS
+    assert "Experimental HF stack — configurable Hugging Face model" in app.MODEL_STACK_OPTIONS
 
 
 def test_eval_and_runtime_models_match_current_oss_stack():
@@ -43,9 +45,11 @@ def test_eval_and_runtime_models_match_current_oss_stack():
     assert eval_mod.JUDGE_MODEL == "claude-sonnet-4-6"
     assert ANSWER_MODEL == REWRITE_MODEL == OSS_120B_MODEL == "groq/openai/gpt-oss-120b"
     assert LLM_RERANK_MODEL == OSS_20B_MODEL == "groq/openai/gpt-oss-20b"
-    assert set(MODEL_STACKS) == {"oss", "legacy_mixed", "cheap_oss"}
+    assert set(MODEL_STACKS) == {"oss", "legacy_mixed", "cheap_oss", "hf_experimental"}
+    assert MODEL_STACKS["legacy_mixed"].label.startswith("Validated benchmark stack")
     assert MODEL_STACKS["legacy_mixed"].answer_model == "gpt-4o-mini"
     assert MODEL_STACKS["cheap_oss"].answer_model == "groq/openai/gpt-oss-20b"
+    assert MODEL_STACKS["hf_experimental"].answer_model.startswith("huggingface/")
     assert "4-5" not in eval_mod.JUDGE_MODEL
     assert all("gpt-4o" not in model and "haiku" not in model for model in [ANSWER_MODEL, REWRITE_MODEL, LLM_RERANK_MODEL])
 
