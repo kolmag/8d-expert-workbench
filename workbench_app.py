@@ -60,6 +60,14 @@ def resolve_default_model_stack_label() -> str:
             return label
     return next(iter(MODEL_STACK_OPTIONS))
 
+
+def model_stack_label(stack_id: str) -> str:
+    for label, option_id in MODEL_STACK_OPTIONS.items():
+        if option_id == stack_id:
+            return label
+    return stack_id
+
+
 EXPERT_TEMPLATES = {
     "D0": "I have a potential quality issue that may need a full 8D investigation: {problem} on {product}. "
           "Should I open a full 8D or is a correction-only path appropriate here?",
@@ -369,7 +377,8 @@ def format_sources_panel(result: AnswerResult) -> str:
     parts = [
         f'<div style="font-size:12px;color:#888;margin-bottom:12px;">'
         f'{len(result.ranked_chunks)} chunks · {len(result.sources)} documents'
-        f'{reranker_badge}</div>'
+        f'{reranker_badge}'
+        f'<span style="margin-left:8px;">{model_stack_label(result.model_stack)}</span></div>'
     ]
     for chunk in result.ranked_chunks:
         score = chunk.relevance_score
@@ -413,6 +422,7 @@ def _format_sources_from_sink(sink: dict) -> str:
     ranked_chunks  = sink.get("ranked_chunks", [])
     sources        = sink.get("sources", [])
     reranker_used  = sink.get("reranker_used", "bge")
+    model_stack    = sink.get("model_stack", DEFAULT_MODEL_STACK)
     rewritten_queries = sink.get("rewritten_queries", [])
 
     if not ranked_chunks:
@@ -427,6 +437,7 @@ def _format_sources_from_sink(sink: dict) -> str:
         sources=sources,
         reranker_used=reranker_used,
         checker_score=1.0,
+        model_stack=model_stack,
     )
     return format_sources_panel(dummy)
 

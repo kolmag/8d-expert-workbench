@@ -28,6 +28,7 @@ def test_standalone_capa_app_imports_shared_core():
     assert "OSS stack — gpt-oss-120b + gpt-oss-20b" in app.MODEL_STACK_OPTIONS
     assert "Validated benchmark stack — GPT-4o-mini + Claude Haiku" in app.MODEL_STACK_OPTIONS
     assert "Experimental HF stack — configurable Hugging Face model" in app.MODEL_STACK_OPTIONS
+    assert app.model_stack_label("legacy_mixed").startswith("Validated benchmark stack")
 
 
 def test_eval_and_runtime_models_match_current_oss_stack():

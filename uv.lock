@@ -458,7 +458,7 @@ wheels = [
 [[package]]
 name = "capa-8d-expert"
 version = "0.1.0"
-source = { git = "https://github.com/kolmag/capa-8d-expert.git#1b08ef3e11ac90e290d271f047fed7f1959c64ed" }
+source = { git = "https://github.com/kolmag/capa-8d-expert.git#d459f27a467d561a13322e3f93c18864d3c85fae" }
 dependencies = [
     { name = "anthropic" },
     { name = "chromadb" },
