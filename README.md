@@ -79,14 +79,14 @@ Each document is LLM-enriched at ingest time — the shared CAPA core generates 
 | + Guardrails + Markdown chunking | 7.094 | 7.487 | 5.120 |
 | + Synthetic queries + Containment content | **7.121** | **7.456** | 4.424 |
 
-**Model benchmark** — same test set, same judge (Claude Sonnet 4.5):
+**Historical model benchmark** — same test set, same judge (Claude Sonnet 4.6). This benchmark is retained as project history; the current runtime stack now uses the SICC-aligned `gpt-oss-120b` / `gpt-oss-20b` configuration shown above.
 
 | Stack | Overall | Checker | Est. cost/197q | Median latency |
 |---|---|---|---|---|
 | GPT-4o-mini + Claude Haiku | **7.121** | 0.671 | ~$2.50 | ~28s |
 | Llama 3.3 70B full-stack (Groq) | 6.942 | 0.590 | ~$1.20 | ~32s |
 
-Llama 3.3 70B is 52% cheaper and competitive on methodology questions. GPT-4o-mini wins significantly on compliance-heavy content (-0.920 on `compliance` category) — formal standards vocabulary favours GPT-4o-mini.
+Llama 3.3 70B was 52% cheaper and competitive on methodology questions in this historical comparison. GPT-4o-mini won significantly on compliance-heavy content (-0.920 on `compliance` category), showing why compliance-heavy prompts need regression testing when model stacks change.
 
 ---
 

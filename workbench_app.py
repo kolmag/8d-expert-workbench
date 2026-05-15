@@ -303,7 +303,7 @@ details[open] { border-color: #30363d !important; }
 """
 
 # ══════════════════════════════════════════════════════════════════════════════
-# Claude helper (for Builder AI suggestions — direct Anthropic, not RAG)
+# OSS helper (for Builder AI suggestions — direct Groq, not RAG)
 # ══════════════════════════════════════════════════════════════════════════════
 
 def call_oss_direct(prompt: str, max_tokens: int = 600) -> str:
